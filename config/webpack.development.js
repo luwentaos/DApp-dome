@@ -1,7 +1,11 @@
+// HtmlWebpackPlugin 作用是生成一个html文件，自动引入打包后的js文件
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { resolve, join } = require('path');
+// FriendlyErrorsWebpackPlugin 用于更友好地输出webpack的警告和错误信息
 const FriendlyErrorsWebpackPlugin = require('@soda/friendly-errors-webpack-plugin');
+// node-notifier 用于在系统通知中显示 FriendlyErrorsWebpackPlugin 插件的错误信息
 const notifier = require('node-notifier');
+// webpack-bundle-analyzer 用于分析webpack
 const bundleAnalyzerPlugin =
   require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const WebpackBuildNotifierPlugin = require('webpack-build-notifier');
