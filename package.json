@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "client:dev": "scripty",
+    "client:dev": "webpack --mode development",
     "client:server": "webpack server --mode development",
     "client:prod": "webpack --mode production"
   },

@@ -7,8 +7,9 @@ if (!container) {
   throw new Error('Failed to find the root element')
 }
 const root = createRoot(container)
+// const root = createRoot(container!) !是强制断言，表示container一定有值
 root.render(
   <BrowserRouter>
-  <App />
+    <App />
   </BrowserRouter>
 )
