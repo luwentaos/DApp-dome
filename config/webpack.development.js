@@ -9,6 +9,8 @@ const notifier = require('node-notifier');
 const bundleAnalyzerPlugin =
   require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const WebpackBuildNotifierPlugin = require('webpack-build-notifier');
+const logo = join(__dirname, 'icon.png'); // 这样可以找到icon.png文件，__dirname是当前文件夹的路径，join是拼接路径，为什么使用join而不是直接拼接字符串，是因为join会根据操作系统自动选择路径分隔符，而__dirname是当前文件夹的路径，所以可以保证logo的路径是正确的，而不用担心路径分隔符的问题。
+// const logo = require('./icon.png'); 会报错
 const port = 3003;
 
 module.exports = {
@@ -56,9 +58,10 @@ module.exports = {
     }),
     new WebpackBuildNotifierPlugin({
       title: '💿 Solv Dvelopment Notification',
-      // logo,
+      logo,
+      appID: 'com.dapp-dome.development',
       suppressSuccess: true
-    })
-    // new BundleAnalyzerPlugin(),
+    }),
+    new bundleAnalyzerPlugin()
   ]
 };
