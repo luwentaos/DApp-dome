@@ -10,5 +10,20 @@
     <div id="app">  
       loading....
     </div>
-  </body>
+    <!-- Service Worker 注册脚本 -->
+    <!-- 切记多测试多测试 上线后想去掉要写脚本删掉 -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load',  ()=> {
+          navigator.serviceWorker.register('/service-worker.js')
+            .then(registration => {
+              console.log('SW registered: ', registration);
+            })
+            .catch(registrationError => {
+              console.log('SW registration failed: ', registrationError);
+            });
+        })
+      }
+    </script>
+  </body> 
 </html>
