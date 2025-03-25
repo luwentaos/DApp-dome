@@ -31,6 +31,27 @@ module.exports = {
       })
     ]
   },
+  /**
+   * 使用module方式，这种方式不用改造index.html，直接引入模块即可
+    experiments: {
+      // 开启输出模块类型
+      outputModule: true
+    },
+    // 配置外部依赖类型
+    externalsType: 'module',
+    externals: {
+      react: 'https://esm.sh/react@19.0.0',              // 模块路径
+      'react-dom': 'https://esm.sh/react-dom@19.0.0/client', // 模块路径
+      'react-router-dom': 'https://esm.sh/react-router-dom@6.23.0', // 模块路径
+    },
+   */
+  // 配置外部依赖-减少打包体积
+  externals: {
+    react: 'React',
+    'react-dom/client': 'ReactDOM',
+    'react-router-dom': 'ReactRouterDOM'
+  },
+
   plugins: [
     new WorkboxPlugin.GenerateSW({
       clientsClaim: true, // Service Worker 激活后立即控制页面
