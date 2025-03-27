@@ -6,6 +6,8 @@ const merge = require('webpack-merge');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 // CleanWebpackPlugin 用于在构建前清理 /dist 文件夹中的内容
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+// WebpackManifestPlugin 用于生成 manifest.json 文件，这个文件用于映射输出文件和源文件
+const { WebpackManifestPlugin } = require('webpack-manifest-plugin');
 // Dotenv 用于从 .env 文件中加载环境变量
 const Dotenv = require('dotenv-webpack');
 // ThemedProgressPlugin ProgressBarPlugin WebpackBar 编译时的进度条
@@ -140,7 +142,10 @@ const webpackBaseConfig = {
         : 'styles/[name].css',
       ignoreOrder: false
     }),
-    new ThemedProgressPlugin()
+    new ThemedProgressPlugin(),
+    new WebpackManifestPlugin({
+      fileName: 'manifest.json'
+    })
   ]
 };
 

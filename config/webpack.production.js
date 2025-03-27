@@ -8,6 +8,72 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 // WorkboxPlugin 用于生成 service worker
 const WorkboxPlugin = require('workbox-webpack-plugin');
 
+class RemoveScriptsPlugin {
+  constructor(options) {
+    this.options = options || {};
+    this.chunksToRemove = options.chunksToRemove || []; // 需要移除的 chunk 名称列表
+  }
+
+  apply(compiler) {
+    compiler.hooks.compilation.tap('RemoveScriptsPlugin', (compilation) => {
+      HtmlWebpackPlugin.getHooks(compilation).afterEmit.tapAsync(
+        'RemoveScriptsPlugin',
+        (data, cb) => {
+          let html = data.html;
+          // 遍历需要移除的 chunk 名称
+          this.chunksToRemove.forEach((chunkName) => {
+            const regex = new RegExp(
+              `<script[^>]*src=["']/dist/${chunkName}\\.[^"']+\\.bundle\\.js["'][^>]*></script>`,
+              'i'
+            );
+            html = html.replace(regex, '');
+          });
+          data.html = html;
+          cb(null, data);
+        }
+      );
+    });
+  }
+}
+
+class InlineRuntimePlugin {
+  constructor(options) {
+    this.options = options || {};
+  }
+
+  apply(compiler) {
+    compiler.hooks.compilation.tap('InlineRuntimePlugin', (compilation) => {
+      HtmlWebpackPlugin.getHooks(compilation).alterAssetTags.tapAsync(
+        'InlineRuntimePlugin',
+        (data, cb) => {
+          const runtimeFile = Object.keys(compilation.assets).find(
+            (file) => file.includes('runtime') && file.endsWith('.bundle.js')
+          );
+          const runtimeContent = runtimeFile
+            ? compilation.assets[runtimeFile].source().toString()
+            : '';
+
+          // 修改 assetTags，移除 runtime 和 main 的 src，内联 runtime
+          console.log('++++', data);
+          data.assetTags.bodyTags = data.assetTags.bodyTags.filter((tag) => {
+            const src = tag.attributes?.src || '';
+            return !src.includes('runtime') && !src.includes('main');
+          });
+
+          // 添加内联 runtime 脚本
+          data.assetTags.bodyTags.push({
+            tagName: 'script',
+            voidTag: false,
+            innerHTML: runtimeContent
+          });
+
+          cb(null, data);
+        }
+      );
+    });
+  }
+}
+
 module.exports = {
   output: {
     path: join(__dirname, '../dist'),
@@ -91,7 +157,29 @@ module.exports = {
       filename: 'index.html',
       // 使用resolve，不使用join，因为join只是简单的拼接字符串，而resolve会判断具体路径。
       template: resolve(__dirname, '../src/index-prod.html'),
-      favicon: './public/favicon.ico'
-    })
+      favicon: './public/favicon.ico',
+      templateParameters: (compilation, assets, assetTags, options) => {
+        const runtimeFile = Object.keys(compilation.assets).find(
+          (file) => file.includes('runtime') && file.endsWith('.bundle.js')
+        );
+        const runtimeContent = runtimeFile
+          ? compilation.assets[runtimeFile].source().toString()
+          : '';
+        return {
+          compilation,
+          webpackConfig: compilation.options,
+          htmlWebpackPlugin: {
+            tags: assetTags,
+            files: assets,
+            options
+          },
+          runtimeContent
+        };
+      }
+    }),
+    // new InlineRuntimePlugin(), // 自定义插件内联 runtime
+    new RemoveScriptsPlugin({
+      chunksToRemove: ['chunk-react-libs', 'chunk-web3-sdk']
+    }) // 自定义插件移除 已缓存本地文件 的 script
   ]
 };

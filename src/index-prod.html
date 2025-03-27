@@ -21,21 +21,72 @@
   </head>
   <body>
     <div id="app">loading....</div>
+    <!-- inner runtime -->
     <!-- Service Worker 注册脚本 -->
     <!-- 切记多测试多测试 上线后想去掉要写脚本删掉 -->
     <script>
-      // if ('serviceWorker' in navigator) {
-      //   window.addEventListener('load', () => {
-      //     navigator.serviceWorker
-      //       .register('/service-worker.js')
-      //       .then((registration) => {
-      //         console.log('SW registered: ', registration);
-      //       })
-      //       .catch((registrationError) => {
-      //         console.log('SW registration failed: ', registrationError);
-      //       });
-      //   });
-      // }
+        // if ('serviceWorker' in navigator) {
+        //   window.addEventListener('load', () => {
+        //     navigator.serviceWorker
+        //       .register('/service-worker.js')
+        //       .then((registration) => {
+        //         console.log('SW registered: ', registration);
+        //       })
+        //       .catch((registrationError) => {
+        //         console.log('SW registration failed: ', registrationError);
+        //       });
+        //   });
+        // }
+
+      // manifest.json
+      const manifest = await fetch('/manifest.json').then((res) => res.json());
+      // 定义需要检查的固定键
+      const fixedKeys = [
+        'chunk-react-libs.js',
+        'chunk-web3-sdk.js',
+      ];
+
+      const filesToCache = fixedKeys.map(key => manifest[key]);
+
+      // 加载脚本的函数
+      function loadScript(file) {
+        const cacheKey = `${file}`; // 使用文件路径作为缓存键
+        const cachedScript = localStorage.getItem(cacheKey);
+
+        if (cachedScript) {
+          // 如果有缓存，直接执行
+          console.log(`Loading ${file} from localStorage`);
+          const script = document.createElement('script');
+          script.textContent = cachedScript;
+          document.body.appendChild(script);
+        } else {
+          // 如果没有缓存，从服务器下载
+          console.log(`Fetching ${file} from server`);
+          fetch(file)
+            .then(response => {
+              if (!response.ok) {
+                throw new Error(`Failed to fetch ${file}: ${response.statusText}`);
+              }
+              return response.text();
+            })
+            .then(scriptContent => {
+              // 存入 localStorage
+              localStorage.setItem(cacheKey, scriptContent);
+              // 执行脚本
+              const script = document.createElement('script');
+              script.textContent = scriptContent;
+              document.body.appendChild(script);
+            })
+            .catch(error => {
+              console.error(`Failed to load script: ${file}`, error);
+            });
+        }
+      }
+
+      // 在页面加载时执行
+      window.addEventListener('load', () => {
+        filesToCache.forEach(file => loadScript(file));
+      });
     </script>
   </body>
 </html>
